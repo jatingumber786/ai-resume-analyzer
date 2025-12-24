@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analysis Result - AI Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="page-wrapper">
+    <header class="app-header">
+        <div class="logo-mark">AI</div>
+        <div class="logo-text">
+            <span class="logo-title">Resume Analyzer</span>
+            <span class="logo-tagline">Analysis summary</span>
+        </div>
+    </header>
+
+    <main class="main-content result-layout">
+        <section class="card card-main">
+            <div class="card-header card-header-row">
+                <div>
+                    <h1>Resume Match Overview</h1>
+                    <p>
+                        Here is how your resume aligns with the required skills.
+                        Use the suggestions below to refine your profile.
+                    </p>
+                </div>
+                <div class="score-ring" style="--score: {{ result.score | default(0) }}">
+                    <div class="score-ring-inner">
+                        <span class="score-value">{{ result.score | round(1) }}%</span>
+                        <span class="score-label">Match</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <span class="metric-label">Total Resume Skills</span>
+                    <span class="metric-value">{{ result.resume_skills|length }}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Required Skills</span>
+                    <span class="metric-value">{{ result.required_skills|length }}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Matched Skills</span>
+                    <span class="metric-value">{{ result.matched_skills|length }}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Missing Skills</span>
+                    <span class="metric-value metric-warning">
+                        {{ result.missing_skills|length }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card card-sub">
+                    <h2>Skills in Your Resume</h2>
+                    {% if result.resume_skills %}
+                        <div class="pill-list">
+                        {% for s in result.resume_skills %}
+                            <span class="pill pill-neutral">{{ s }}</span>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-text">
+                            No known skills detected. Try including more technical keywords.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="card card-sub">
+                    <h2>Required Skills (Target Role)</h2>
+                    {% if result.required_skills %}
+                        <div class="pill-list">
+                        {% for s in result.required_skills %}
+                            <span class="pill pill-outline">{{ s }}</span>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-text">
+                            No job description was provided, so all known skills are treated as optional.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card card-sub">
+                    <h2>Matched Skills</h2>
+                    {% if result.matched_skills %}
+                        <div class="pill-list">
+                        {% for s in result.matched_skills %}
+                            <span class="pill pill-positive">{{ s }}</span>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-text">
+                            No overlap between resume and required skills detected.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="card card-sub">
+                    <h2>Missing / Recommended Skills</h2>
+                    {% if result.missing_skills %}
+                        <div class="pill-list">
+                        {% for s in result.missing_skills %}
+                            <span class="pill pill-warning">{{ s }}</span>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-text">
+                            Your resume already covers all detected required skills.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Extracted sections -->
+            <div class="card card-sub">
+                <h2>Extracted Resume Sections</h2>
+                {% if result.sections and result.section_order %}
+                    <div class="section-grid">
+                        {% for sec_name in result.section_order %}
+                            {% set sec_text = result.sections[sec_name] %}
+                            <div class="section-block">
+                                <div class="section-title">{{ sec_name }}</div>
+                                <div class="section-text">
+                                    {{ sec_text | replace('\n', '<br>') | safe }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-text">
+                        Could not automatically detect clear sections in this resume.
+                        Try using standard headings like "Education", "Experience", "Projects", etc.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Categorized Improvement Suggestions -->
+            <div class="card card-sub">
+                <h2>Improvement Suggestions</h2>
+
+                {% set sug = result.categorized_suggestions %}
+
+                {% if not (sug["Technical Skill Gaps"] or sug["Soft Skills & Professional Traits"] or sug["Resume Content & Structure"] or sug["ATS Optimization"]) %}
+                    <p class="empty-text">Your resume looks strong! No major suggestions.</p>
+                {% else %}
+                    <div class="suggestion-category">
+                        {% if sug["Technical Skill Gaps"] %}
+                            <h3 class="cat-title">Technical Skill Gaps</h3>
+                            <ul class="cat-list">
+                                {% for s in sug["Technical Skill Gaps"] %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if sug["Soft Skills & Professional Traits"] %}
+                            <h3 class="cat-title">Soft Skills & Professional Traits</h3>
+                            <ul class="cat-list">
+                                {% for s in sug["Soft Skills & Professional Traits"] %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if sug["Resume Content & Structure"] %}
+                            <h3 class="cat-title">Resume Content & Structure</h3>
+                            <ul class="cat-list">
+                                {% for s in sug["Resume Content & Structure"] %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if sug["ATS Optimization"] %}
+                            <h3 class="cat-title">ATS Optimization</h3>
+                            <ul class="cat-list">
+                                {% for s in sug["ATS Optimization"] %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions result-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    Analyze Another Resume
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <span>AI Resume Analyzer · Improve, iterate, and apply with confidence</span>
+    </footer>
+</div>
+</body>
+</html>

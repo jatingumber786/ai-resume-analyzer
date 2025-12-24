@@ -1,0 +1,5 @@
+in terminal
+python app.py
+
+
+We downloaded the Python libraries Flask, PyPDF2, and python-docx using pip from the Python Package Index (PyPI) website.

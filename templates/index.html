@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="page-wrapper">
+    <header class="app-header">
+        <div class="logo-mark">AI</div>
+        <div class="logo-text">
+            <span class="logo-title">Resume Analyzer</span>
+            <span class="logo-tagline">Evaluate your resume against any job description</span>
+        </div>
+    </header>
+
+    <!-- INDEX LAYOUT: single centered column -->
+    <main class="main-content index-layout">
+        <!-- Main form card -->
+        <section class="card card-main">
+            <div class="card-header">
+                <h1>Upload Your Resume</h1>
+                <p>
+                    Get an instant skill match score, see missing skills, and improve your resume
+                    for a specific role.
+                </p>
+            </div>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-error">
+                    {% for msg in messages %}
+                        <p>{{ msg }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" enctype="multipart/form-data" class="form-grid">
+                <div class="form-group">
+                    <label for="resume_file">
+                        Resume File
+                        <span class="required">*</span>
+                    </label>
+                    <p class="field-hint">Supported formats: PDF, DOCX, TXT</p>
+                    <div class="file-input-wrapper">
+                        <input type="file" name="resume_file" id="resume_file" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_description">
+                        Job Description
+                        <span class="optional">(optional)</span>
+                    </label>
+                    <p class="field-hint">
+                        Paste the job description or quickly add requirements using the buttons below.
+                    </p>
+
+                    <!-- Suggestion buttons -->
+                    <div class="suggestion-wrapper">
+                        <div class="suggestion-label">Quick add common requirements:</div>
+                        <div class="suggestion-buttons">
+                            <button type="button" class="suggest-btn" data-text="Strong knowledge of C++ and object-oriented programming">
+                                C++
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Strong Java programming skills with OOP concepts">
+                                Java
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Experience with Python for backend or scripting">
+                                Python
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Hands-on experience with Spring Boot for building RESTful APIs">
+                                Spring Boot
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Experience with HTML, CSS, and JavaScript for frontend development">
+                                HTML/CSS/JS
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Good understanding of Data Structures and Algorithms">
+                                DSA
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Knowledge of SQL and relational databases like MySQL">
+                                SQL & Databases
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Familiarity with RESTful API design and integration">
+                                REST APIs
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Experience with Git and GitHub for version control">
+                                Git / GitHub
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Basic understanding of cloud platforms such as AWS or Azure">
+                                Cloud (AWS/Azure)
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Ability to write clean, maintainable, and well-documented code">
+                                Clean Code
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Strong problem-solving skills and debugging abilities">
+                                Problem Solving
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Good communication and teamwork skills">
+                                Communication
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Exposure to Agile or Scrum software development methodologies">
+                                Agile / Scrum
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Experience with basic testing and writing unit test cases">
+                                Testing / Unit Tests
+                            </button>
+                            <button type="button" class="suggest-btn" data-text="Ability to learn new technologies and frameworks quickly">
+                                Fast Learner
+                            </button>
+                        </div>
+                        <button type="button" class="suggest-clear" id="clearSuggestions">
+                            Clear job description text
+                        </button>
+                    </div>
+
+                    <textarea
+                        name="job_description"
+                        id="job_description"
+                        rows="8"
+                        placeholder="Example:
+We are looking for a Java / Spring Boot backend developer with strong knowledge of OOP,
+data structures and algorithms, SQL, REST APIs, and version control (Git)..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        Analyze Resume
+                    </button>
+                    <p class="note">
+                        Your file is processed on this server only for analysis and not stored permanently.
+                    </p>
+                </div>
+            </form>
+        </section>
+
+        <!-- How it works card -->
+        <section class="card card-side index-side">
+            <h2>How it works</h2>
+            <ol class="steps-list">
+                <li><strong>Upload</strong> your resume as PDF / DOCX / TXT.</li>
+                <li>
+                    <strong>Use buttons</strong> to quickly add skills/requirements or type your own job description.
+                </li>
+                <li>
+                    <strong>Review</strong> your match score, matched skills, missing skills, and structured sections.
+                </li>
+                <li>
+                    <strong>Improve</strong> your resume using the categorized suggestions provided.
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <span>AI Resume Analyzer · Built with Python & Flask</span>
+    </footer>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.getElementById("job_description");
+    const buttons = document.querySelectorAll(".suggest-btn");
+    const clearBtn = document.getElementById("clearSuggestions");
+
+    buttons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const insertText = this.dataset.text || this.innerText.trim();
+            let current = textarea.value.trim();
+
+            if (!current) {
+                textarea.value = insertText;
+            } else if (!current.includes(insertText)) {
+                const separator = current.endsWith(",") ? " " : ", ";
+                textarea.value = current + separator + insertText;
+            }
+            textarea.focus();
+        });
+    });
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            textarea.value = "";
+            textarea.focus();
+        });
+    }
+});
+</script>
+</body>
+</html>
